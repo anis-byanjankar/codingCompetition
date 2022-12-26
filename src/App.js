@@ -3,13 +3,26 @@ import CodeMirror from '@uiw/react-codemirror';
 import { duotoneDark } from '@uiw/codemirror-theme-duotone';
 import { python } from '@codemirror/lang-python';
 import axios from 'axios';
-
+import raw from './questions/q1001.py';
 
 
 function App() {
-  const defaultSnippet = "print('Hello World Python!!')";
+  const [defaultSnippet,setSnippet] = useState("print('Hello World Python!!')\nprint('1234')\nfor x in range(10):\n\tprint(x)");
+  
   const [code, setCode] = useState(defaultSnippet);
   const [output, setOutput] = useState("");
+
+  const [participantCode, setParticipantCode] = useState("");
+  const handleInput = event => {
+    setParticipantCode(event.target.value);
+  };
+  
+  fetch(raw)
+  .then(r => r.text())
+  .then(text => {
+    console.log('text decoded:', text);
+    setSnippet(text)
+  });
 
   const onChange = React.useCallback((value, viewUpdate) => {
     console.log('value:', value);
@@ -22,9 +35,11 @@ function App() {
 
     var config = {
       method: 'post',
-      url: 'http://localhost:5000/submit',
+      url: 'http://dev.anishbyanjankar.com.np:5000/submit',
       headers: { 
-        'Content-Type': 'text/plain'
+        'Content-Type': 'text/plain',
+        'Submission-Code': participantCode,
+        'Question-Code': '1001'
       },
       withCredentials: false,
       data : data
@@ -33,7 +48,7 @@ function App() {
     axios(config)
     .then(function (response) {
       console.log(response.data);
-      setOutput(response.data)
+      setOutput(JSON.stringify(response.data))
     })
     .catch(function (error) {
       console.log(error);
@@ -42,6 +57,8 @@ function App() {
 
   return (
     <>
+    {/* Make this input required from frontend.*/}
+    <input onChange={handleInput} placeholder="Participant Code"/>
     <CodeMirror
       value={defaultSnippet}
       height="200px"
